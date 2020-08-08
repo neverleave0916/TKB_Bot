@@ -7,6 +7,7 @@ These instructions will get you a copy of the project up and running on your loc
 ### Requirements
 Use the package manager pip to install dependencies
 * Python>=3.0 (Test on 3.8.2)
+* pip(or you can use other package manager that you prefer)
 * requests==2.24.0
 * selenium==3.141.0
 
