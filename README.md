@@ -60,5 +60,5 @@ EnterPoint    = https://bookseat.tkblearning.com.tw/book-seat/student/login/logo
 ## Running the tests
 
 ```
-python TKB_Bot.py
+start.cmd
 ```
