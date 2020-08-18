@@ -10,6 +10,7 @@ Use the package manager pip to install dependencies
 * pip(or you can use other package manager that you prefer)
 * requests==2.24.0
 * selenium==3.141.0
+* configparser==5.0.0
 
 ```
 pip install -r requirements.txt
@@ -18,17 +19,32 @@ pip install -r requirements.txt
 ### Installing
 依照下列格式，修改 config.ini 中之參數欄位
 ```python
-st_id         = 'A123456789'       # 帳號
-st_pwd        = 'Ab123456'         # 密碼
-select_class  = 2                  # 欲上課課程
-#-------以下擇一填寫-------
-snap_up       = True               # 自動搶課模式
-select_date   = '2020-08-12'       # 欲上課日期
-#-------------------------
-select_branch = 'WA'               # 嘉義場==WA
-session_time  = ['1','2','3']      # 上課場次
-dev           = False              # 是否在開發階段
-EnterPoint    = 'https://bookseat.tkblearning.com.tw/book-seat/student/login/logout' #選課網址
+[ID]
+account      = A123456789
+password     = 123456789
+
+[class]
+# 欲上課課程
+select_class = 1
+
+# 自動搶課模式
+snap_up      = True
+
+# 欲上課日期
+select_date  = 2020-08-12
+
+# 嘉義場==WA
+select_branch = WA
+
+# 場次
+session_time  = ["1","2","3"]
+
+[options]
+# 是否在開發階段(是否送出選課)
+dev           = False
+
+#選課網址                       
+EnterPoint    = https://bookseat.tkblearning.com.tw/book-seat/student/login/logout
 ```
 
 * `select_class` 按照網頁上的課程順序，由1開始(只能選一堂)，可以隨便選因為選上可以修改。e.g.資結==1 計概==2 英文==3
