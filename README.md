@@ -16,7 +16,7 @@ pip install -r requirements.txt
 ```
 
 ### Installing
-依照下列格式，修改 TKB_Bot.py 中之參數欄位
+依照下列格式，修改 config.ini 中之參數欄位
 ```python
 st_id         = 'A123456789'       # 帳號
 st_pwd        = 'Ab123456'         # 密碼
