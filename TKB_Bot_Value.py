@@ -14,6 +14,8 @@ import json
 
 
 
+
+
 ''' 參數設定 '''
 cfg = ConfigParser()
 cfg.read('./config.ini', encoding='utf-8')
@@ -30,7 +32,13 @@ session_time = json.loads(cfg.get('class', 'session_time')) # 場次(TKB規定�
 dev          = cfg['options'].getboolean('dev')             # 是否在開發階段(是否送出選課)
 EnterPoint   = cfg['options']['EnterPoint']                 # 選課網址
 
-
+'''
+* 場次：
+* 1 09:30~12:50(200分鐘, 3:20)
+* 2 13:00~16:20(200分鐘, 3:20)
+* 3 16:30~18:10(100分鐘, 1:40)
+* 4 18:20~20:00(100分鐘, 1:40)
+'''
 
 #修改select_date
 if snap_up == True:
@@ -75,7 +83,7 @@ def rush():
         print("等待12:00開始搶課")
         return 2
     elif result < 7 and result >= 0:
-        print ("不須搶課，當週上課，欲上 " + str(result) + " 天後的課")
+        print ("不須搶課，當週上課" + str(result))
         return 0
     else:
         print("日期輸入錯誤")
@@ -199,7 +207,7 @@ def submit():
         run()
 
 ''' 執行完整選課 '''
-def run():
+def run(time = 'null'):
     try:
         element = WebDriverWait(driver, 900).until(
             EC.visibility_of_element_located((By.ID,'class_selector'))
@@ -214,8 +222,12 @@ def run():
         branch_selector = Select(driver.find_element_by_id("branch_selector"))  
 
     class_selector.select_by_index(select_class)    #選課程
+    if time == 'night':
+        change_value()
     date_selector.select_by_value(select_date)      #選日期
     branch_selector.select_by_value(select_branch)  #選地點
+    if time == 'noon':
+        change_value_session()
     select_session()             #選場次時間
 
 ''' 等待特定時間到 '''
@@ -282,7 +294,17 @@ def day_stamp():
 ''' 選課主程式 '''
 def main():  
     open_chrome()
-    print("--------網頁自動化模式--------")
+    print("------------------------網頁改value模式------------------------")
+    print('''
+  _____ _                             __      __   _            
+ / ____| |                            \ \    / /  | |           
+| |    | |__   __ _ _ __   __ _  ___   \ \  / /_ _| |_   _  ___ 
+| |    | '_ \ / _` | '_ \ / _` |/ _ \   \ \/ / _` | | | | |/ _ \\
+| |____| | | | (_| | | | | (_| |  __/    \  / (_| | | |_| |  __/
+ \_____|_| |_|\__,_|_| |_|\__, |\___|     \/ \__,_|_|\__,_|\___|
+                           __/ |                                
+                          |___/                                 
+''')
     print()
     if_rush = rush()#看是不是要搶課
     
@@ -296,11 +318,29 @@ def main():
 
     #要搶課，等待00:00
     elif if_rush == 1:
-        #23:55先登入
-        #night_stamp()
+        #23:50先登入
         wait_start('23:50:00', lambda: act(100))
         driver.refresh()
         login()
+
+        try:
+            element = WebDriverWait(driver, 900).until(
+            EC.visibility_of_element_located((By.ID,'class_selector'))
+            )
+        except TimeoutException as ex:
+            print("未找到元素")
+            print("Exception has been thrown. " + str(ex))
+        else:
+            #reference : https://huilansame.github.io/huilansame.github.io/archivers/drop-down-select
+            class_selector = Select(driver.find_element_by_id("class_selector"))
+            date_selector = Select(driver.find_element_by_id("date_selector"))
+            branch_selector = Select(driver.find_element_by_id("branch_selector")) 
+        
+        class_selector.select_by_index(select_class)    #選課程
+        change_value()
+        date_selector.select_by_value(select_date)      #選日期
+        branch_selector.select_by_value(select_branch)  #選地點
+
         #修正觸發時間
         #night_dateString = update_time(night_dateString)
         #開始等待
@@ -311,11 +351,7 @@ def main():
                 break
             else:
                 sleep(0.1)
-        #wait_start(night_dateString, lambda: act(100),0.01)
-        driver.refresh()
-        while not date_exist():
-            driver.refresh()
-        run()
+        select_session()             #選場次時間
         
     #要搶課，等待12:00
     elif if_rush == 2:  
@@ -333,10 +369,10 @@ def main():
 
 
         #wait_start('12:00', lambda: act(100),0.01)
-        driver.refresh()
-        while not enable_book():
-            driver.refresh()
-        run()
+        #driver.refresh()
+        #while not enable_book():
+        #    driver.refresh()
+        run('noon')
 
 
     #保留頁面10分鐘
@@ -355,6 +391,32 @@ def getserverdelay():
 
 def timeprint(text):
     print("({:s}) {:s}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), text), flush=True)
+
+
+#將最後一個選項改為select_date
+def change_value():
+    element = driver.find_elements_by_xpath("//select[@id='date_selector']/option")
+    element_attribute_value = element[7].get_attribute('value')
+    #print(element_attribute_value) 
+    driver.execute_script("arguments[0].setAttribute('value','"+select_date+"')", element[7])
+    #element_attribute_value = element[7].get_attribute('value')
+    #print(element_attribute_value)
+
+#場次時間更改與可以打勾
+def change_value_session():
+    element = driver.find_elements_by_xpath("//div[@id='session_time_div']/input")
+    #element_attribute_value = element[0].get_attribute('value')
+    #print(element_attribute_value) 
+    driver.execute_script("arguments[0].setAttribute('value','1')", element[0])
+    driver.execute_script("arguments[0].setAttribute('value','2')", element[1])
+    driver.execute_script("arguments[0].setAttribute('value','3')", element[2])
+    driver.execute_script("arguments[0].setAttribute('value','4')", element[3])
+    driver.execute_script("arguments[0].disabled=false", element[0])
+    driver.execute_script("arguments[0].disabled=false", element[1])
+    driver.execute_script("arguments[0].disabled=false", element[2])
+    driver.execute_script("arguments[0].disabled=false", element[3])
+    #element_attribute_value = element[7].get_attribute('value')
+    #print(element_attribute_value)
 
 if __name__ == '__main__':
     main()
